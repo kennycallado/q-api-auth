@@ -1,0 +1,16 @@
+# Generate secret key and copy to clipboard
+# :redir @* | !openssl rand -base64 32 | tr -d '\n' | xclip -selection clipboard
+# :redir @* | !openssl rand -base64 32 | tr -d '\n' | wl-copy
+
+[default]
+port       = 8080
+address    = "0.0.0.0"
+origin_url = "http://localhost:8000,http://localhost:8080"
+secret_key = ""
+
+[default.databases.store]
+host = "localhost"
+port = 8000
+username = "root"
+password = "root"
+# ROCKET_DATABASES='{store={host="localhost", port=8000, username="root", password="root"}}'
