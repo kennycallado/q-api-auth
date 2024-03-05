@@ -1,6 +1,6 @@
 [package]
-name = "q-app-super"
-version = "0.1.0"
+name = "q-api-super"
+version = "0.1.5"
 edition = "2021"
 
 [features]
