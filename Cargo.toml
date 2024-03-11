@@ -6,6 +6,7 @@ edition = "2021"
 [features]
 default = []
 auth = ["jsonwebtoken"]
+cron = ["tokio-cron-scheduler"]
 
 [dependencies]
 chrono = { version = "0.4.34", features = ["serde", "clock"] }
@@ -13,3 +14,4 @@ jsonwebtoken = { version = "9.2.0", optional = true }
 rocket = { version = "0.5.0", features = ["json", "secrets", "uuid"] }
 serde = { version = "1.0.197", features = ["derive"] }
 surrealdb = "1.2.0"
+tokio-cron-scheduler = { version = "0.10.0", optional = true }
