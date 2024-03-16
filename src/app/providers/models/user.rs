@@ -8,27 +8,46 @@ use surrealdb::sql::Thing;
 #[serde(crate = "rocket::serde")]
 pub enum Role {
 	Admin,
+    Coord,
+    Thera,
+    Parti,
 	Guest,
-	User,
 }
 
 impl From<Role> for Cow<'static, str> {
 	fn from(role: Role) -> Self {
 		match role {
 			Role::Admin => Cow::Borrowed("admin"),
-			Role::Guest => Cow::Borrowed("guest"),
-			Role::User => Cow::Borrowed("user"),
+            Role::Coord => Cow::Borrowed("coord"),
+            Role::Thera => Cow::Borrowed("thera"),
+            Role::Parti => Cow::Borrowed("parti"),
+            Role::Guest => Cow::Borrowed("guest"),
 		}
 	}
+}
+
+impl From<String> for Role {
+    fn from(role: String) -> Self {
+        match role.as_ref() {
+            "admin" => Role::Admin,
+            "coord" => Role::Coord,
+            "thera" => Role::Thera,
+            "parti" => Role::Parti,
+            "guest" => Role::Guest,
+            _ => Role::Parti,
+        }
+    }
 }
 
 impl From<Cow<'static, str>> for Role {
 	fn from(role: Cow<'static, str>) -> Self {
 		match role.as_ref() {
 			"admin" => Role::Admin,
-			"guest" => Role::Guest,
-			"user" => Role::User,
-			_ => Role::User,
+            "coord" => Role::Coord,
+            "thera" => Role::Thera,
+            "parti" => Role::Parti,
+            "guest" => Role::Guest,
+            _ => Role::Parti,
 		}
 	}
 }
@@ -39,7 +58,7 @@ pub struct UserGlobalPrev {
 	pub id: Thing,
 	pub project: Option<Thing>,
 	pub username: Cow<'static, str>,
-	pub role: Cow<'static, str>,
+	pub role: Thing,
 	pub web_token: Value,
 }
 
@@ -56,7 +75,6 @@ pub struct UserGlobal {
 #[derive(Deserialize)]
 pub struct UserIntervPrev {
 	pub id: Thing,
-	pub role: Cow<'static, str>,
 	pub pass: Cow<'static, str>,
 }
 
@@ -64,6 +82,5 @@ pub struct UserIntervPrev {
 #[serde(crate = "rocket::serde")]
 pub struct UserInterv {
 	pub id: Thing,
-	pub role: Role,
 	pub pass: Cow<'static, str>,
 }

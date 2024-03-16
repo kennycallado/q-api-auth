@@ -17,12 +17,29 @@ use crate::app::providers::services::auth::token::Token;
 
 pub async fn generate_guest_user(db: &DbAuth) -> Result<UserGlobal, Status> {
 	let mut query =
-		db.0.query(r#"CREATE users CONTENT { username: rand::string(), role: 'guest' };"#)
-			.await
-			.map_err(|_| {
-				dbg!("Error creating user");
-				Status::InternalServerError
-			})?;
+		db.0.query(r#"
+        LET $q_user = CREATE users CONTENT { username: rand::string(), role: roles:5 };
+
+        RETURN $q_user;
+        RETURN SELECT VALUE name from $q_user.role;
+        "#)
+        .await
+        .map_err(|_| {
+            dbg!("Error creating user");
+            Status::InternalServerError
+        })?;
+
+    let role: Role = query
+        .take(query.num_statements() - 1)
+        .map(|role: Option<String>| {
+            let role = role.unwrap();
+
+            role.into()
+        })
+        .map_err(|_| {
+        dbg!("Error getting role");
+        Status::InternalServerError
+    })?;
 
 	let user: UserGlobal = query
 		.take(query.num_statements() - 1)
@@ -32,7 +49,7 @@ pub async fn generate_guest_user(db: &DbAuth) -> Result<UserGlobal, Status> {
 				id: user.id,
 				project: user.project,
 				username: user.username,
-				role: user.role.into(),
+				role: role.into(),
 				web_token: user.web_token,
 			}
 		})
@@ -116,10 +133,10 @@ pub async fn get_user_from_username(
 		db.0.query(
 			r#"
             LET $q_user = (SELECT * FROM ONLY users WHERE username = $b_username LIMIT 1);
-            LET $q_project = (SELECT * FROM ONLY $q_user.project LIMIT 1);
 
-            RETURN $q_project;
+            RETURN SELECT * FROM ONLY $q_user.project LIMIT 1;
             RETURN $q_user;
+            RETURN SELECT VALUE name from $q_user.role;
             "#,
 		)
 		.bind(("b_username", username))
@@ -129,6 +146,18 @@ pub async fn get_user_from_username(
 			Status::InternalServerError
 		})?;
 
+    let role: Role = query
+        .take(query.num_statements() - 1)
+        .map(|role: Option<String>| {
+            let role = role.unwrap();
+
+            role.into()
+        })
+        .map_err(|_| {
+        dbg!("Error getting role");
+        Status::InternalServerError
+    })?;
+
 	let user: UserGlobal = query
 		.take(query.num_statements() - 1)
 		.map(|user: Option<UserGlobalPrev>| {
@@ -137,7 +166,7 @@ pub async fn get_user_from_username(
 				id: user.id,
 				project: user.project,
 				username: user.username,
-				role: user.role.into(),
+				role: role.into(),
 				web_token: user.web_token,
 			}
 		})

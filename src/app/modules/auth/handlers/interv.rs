@@ -19,34 +19,19 @@ pub async fn inject_guest(
 		r#"
         USE NS {} DB {};
         LET $q_pass = rand::ulid();
-        LET $q_user = UPDATE {user_id} SET role = "guest", pass = $q_pass;
 
-        RETURN $q_user;
+        RETURN UPDATE {user_id} SET pass = $q_pass;
         RETURN <string> $q_pass;
         "#,
 		cred.ns, cred.db,
 	);
 
-	let mut query = db.0.query(sql).await.map_err(|_| {
-		dbg!("Error querying");
-		Status::InternalServerError
-	})?;
-
-	// let user: UserInterv = query.take(query.num_statements() - 1)
-	//     .map(|user: Option<UserIntervPrev>| {
-	//         let user = user.unwrap();
-	//         UserInterv {
-	//             id: user.id,
-	//             role: user.role.into(),
-	//             pass: user.pass,
-	//         }
-	//     })
-	//     .map_err(|_| {
-	//         dbg!("Error getting user");
-	//         Status::InternalServerError
-	//     })?;
-
-	// println!("{:?}", user);
+	let mut query = db.0.query(sql)
+        .await
+        .map_err(|_| {
+            dbg!("Error querying");
+            Status::InternalServerError
+	    })?;
 
 	let pass: Option<String> = query
 		.take(query.num_statements() - 1)
@@ -85,7 +70,7 @@ pub async fn join(
 		"user".into(),
 		"user_scope".into(),
 		user_id,
-		user.role.into(),
+		claims.role,
 	);
 
 	match claims.encode_for_access(secret_key.as_ref()) {
@@ -144,7 +129,6 @@ async fn validate_pass(db: &DbAuth, cred: &CredentialsJoin) -> Result<UserInterv
 			let user = user.unwrap();
 			UserInterv {
 				id: user.id,
-				role: user.role.into(),
 				pass: user.pass,
 			}
 		})
@@ -161,13 +145,7 @@ async fn get_project_token(
 	project_name: &Cow<'static, str>,
 ) -> Result<String, Status> {
 	let mut query =
-		db.0.query(
-			r#"
-            LET $q_project = (SELECT * FROM ONLY projects WHERE name = $b_project LIMIT 1);
-
-            RETURN encoding::base64::encode($q_project.token);
-        "#,
-		)
+		db.0.query("RETURN SELECT VALUE token FROM ONLY projects WHERE name = $b_project LIMIT 1;")
 		.bind(("b_project", project_name))
 		.await
 		.map_err(|_| {
