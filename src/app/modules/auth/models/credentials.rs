@@ -4,7 +4,14 @@ use serde::Deserialize;
 
 #[derive(Deserialize)]
 #[serde(crate = "rocket::serde")]
-pub struct CredentialsLoging {
+pub struct CredentialsSignup {
+	pub username: Cow<'static, str>,
+    pub project: Option<Cow<'static, str>>,
+}
+
+#[derive(Deserialize)]
+#[serde(crate = "rocket::serde")]
+pub struct CredentialsSignin {
 	pub username: Cow<'static, str>,
 }
 

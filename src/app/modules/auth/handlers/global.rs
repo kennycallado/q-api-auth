@@ -2,9 +2,10 @@ use std::borrow::Cow;
 
 use rocket::http::Status;
 use rocket::serde::json;
+use surrealdb::sql::Thing;
 
 use crate::app::modules::auth::models::auth::{AuthUser, ProjectToSend};
-use crate::app::modules::auth::models::credentials::CredentialsLoging;
+use crate::app::modules::auth::models::credentials::{CredentialsSignin, CredentialsSignup};
 
 use crate::app::providers::config::getter::ConfigGetter;
 
@@ -15,12 +16,83 @@ use crate::app::providers::services::auth::claims::Claims;
 use crate::app::providers::services::auth::db::DbAuth;
 use crate::app::providers::services::auth::token::Token;
 
+pub async fn signup(db: &DbAuth, cred: CredentialsSignup) -> Result<AuthUser, Status> {
+    let project: Option<Thing> = match cred.project {
+        Some(project) => {
+            let temp: Vec<&str> = project.split(":").collect();
+            if temp.len() != 2 || temp[0].is_empty() || temp[1].is_empty() || temp[0] != "projects" {
+                eprintln!("Bad project id");
+                return Err(Status::BadRequest)
+            }
+
+            Some(Thing::from((temp[0], temp[1]))) // doesn't work well with numbers
+        },
+        None => None,
+    };
+
+
+    // create user
+    let mut query =
+        db.0.query(r#"
+        LET $q_role = (SELECT VALUE id FROM ONLY roles WHERE name = 'parti' LIMIT 1);
+
+        RETURN CREATE users CONTENT { username: $b_username, role: $q_role, project: $b_project };
+        RETURN SELECT VALUE name from $q_role;
+        "#)
+        .bind(("b_username", &cred.username))
+        .bind(("b_project", project))
+        .await
+        .map_err(|_| {
+            dbg!("Error creating user");
+            Status::InternalServerError
+        })?;
+
+    let role: Role = query
+        .take(query.num_statements() - 1)
+        .map(|role: Option<String>| {
+            let role = role.unwrap();
+
+            role.into()
+        })
+        .map_err(|_| {
+            dbg!("Error getting role");
+            Status::InternalServerError
+        })?;
+    
+    let user: UserGlobal = query
+        .take(query.num_statements() - 1)
+        .map(|user: Option<UserGlobalPrev>| {
+            let role = role.clone();
+            let user = user.expect("User not found");
+
+            UserGlobal {
+                id: user.id,
+                project: user.project,
+                username: user.username,
+                role: role.into(),
+                web_token: user.web_token,
+            }
+        }).map_err(|e| {
+            let foo = surrealdb::Error::from(e).to_string();
+            if foo.contains("users_username") { return Status::Conflict } // index unique
+
+            eprintln!("Error getting user: {:?}", foo);
+            dbg!("Error getting user");
+            Status::InternalServerError
+        })?;
+
+    let mut user = AuthUser::from(&user);
+    user.token = generate_global_token(&user.id, role)?;
+
+    Ok(user)
+}
+
 pub async fn generate_guest_user(db: &DbAuth) -> Result<UserGlobal, Status> {
 	let mut query =
 		db.0.query(r#"
-        LET $q_user = CREATE users CONTENT { username: rand::string(), role: roles:5 };
+        LET $q_role = (SELECT VALUE id FROM ONLY roles WHERE name = 'guest' LIMIT 1);
 
-        RETURN $q_user;
+        RETURN CREATE users CONTENT { username: rand::string(), role: $q_role };
         RETURN SELECT VALUE name from $q_user.role;
         "#)
         .await
@@ -61,7 +133,7 @@ pub async fn generate_guest_user(db: &DbAuth) -> Result<UserGlobal, Status> {
 	Ok(user)
 }
 
-pub async fn login(db: &DbAuth, cred: CredentialsLoging) -> Result<AuthUser, Status> {
+pub async fn login(db: &DbAuth, cred: CredentialsSignin) -> Result<AuthUser, Status> {
 	let (mut user_to_send, role) = get_user_from_username(db, &cred.username).await?;
 	user_to_send.token = generate_global_token(&user_to_send.id, role)?;
 

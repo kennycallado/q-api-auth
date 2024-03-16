@@ -4,7 +4,7 @@ use rocket::serde::json::Value;
 use serde::Deserialize;
 use surrealdb::sql::Thing;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(crate = "rocket::serde")]
 pub enum Role {
 	Admin,

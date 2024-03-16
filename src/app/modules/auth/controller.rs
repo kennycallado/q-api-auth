@@ -5,14 +5,14 @@ use rocket::State;
 use super::handlers::{global, interv};
 
 use super::models::auth::{AuthToken, AuthUser};
-use super::models::credentials::{CredentialsJoin, CredentialsLoging, CredentialsRefresh};
+use super::models::credentials::{CredentialsJoin, CredentialsSignin, CredentialsRefresh, CredentialsSignup};
 
 use crate::app::providers::services::auth::claims::Claims;
 use crate::app::providers::services::auth::db::DbAuth;
 use crate::app::providers::services::auth::token::Token;
 
 pub fn routes() -> Vec<rocket::Route> {
-	routes![options_all, login, join, refresh]
+	routes![options_all, signup, signin, join, refresh]
 }
 
 #[options("/<_..>")]
@@ -20,10 +20,22 @@ pub async fn options_all() -> Status {
 	Status::Ok
 }
 
-#[post("/login", data = "<credentials>")]
-async fn login(
+#[post("/signup", data = "<credentials>")]
+async fn signup(
 	db: &State<DbAuth>,
-	credentials: Json<CredentialsLoging>,
+	credentials: Json<CredentialsSignup>
+) -> Result<Json<AuthUser>, Status> {
+    let cred = credentials.into_inner();
+
+    let response = global::signup(db, cred).await?;
+
+    Ok(Json(response))
+}
+
+#[post("/login", data = "<credentials>")]
+async fn signin(
+	db: &State<DbAuth>,
+	credentials: Json<CredentialsSignin>,
 ) -> Result<Json<AuthUser>, Status> {
 	let mut cred = credentials.into_inner();
 
