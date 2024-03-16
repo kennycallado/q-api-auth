@@ -90,10 +90,10 @@ pub async fn signup(db: &DbAuth, cred: CredentialsSignup) -> Result<AuthUser, St
 pub async fn generate_guest_user(db: &DbAuth) -> Result<UserGlobal, Status> {
 	let mut query =
 		db.0.query(r#"
-        LET $q_role = (SELECT VALUE id FROM ONLY roles WHERE name = 'guest' LIMIT 1);
+        LET $q_role = (SELECT * FROM ONLY roles WHERE name = 'guest' LIMIT 1);
 
-        RETURN CREATE users CONTENT { username: rand::string(), role: $q_role };
-        RETURN SELECT VALUE name from $q_user.role;
+        RETURN CREATE users CONTENT { username: rand::string(), role: $q_role.id };
+        RETURN $q_role.name;
         "#)
         .await
         .map_err(|_| {
