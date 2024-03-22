@@ -60,9 +60,10 @@ impl From<Cow<'static, str>> for Role {
 #[serde(crate = "rocket::serde")]
 pub struct UserGlobalPrev {
 	pub id: Thing,
-	pub project: Option<Thing>,
 	pub username: Cow<'static, str>,
-	pub role: Thing,
+    pub password: Cow<'static, str>,
+    pub role: Cow<'static, str>,
+	pub project: Option<Thing>,
 	pub web_token: Value,
 }
 
@@ -70,9 +71,10 @@ pub struct UserGlobalPrev {
 #[serde(crate = "rocket::serde")]
 pub struct UserGlobal {
 	pub id: Thing,
-	pub project: Option<Thing>,
 	pub username: Cow<'static, str>,
-	pub role: Role,
+    pub password: Cow<'static, str>,
+    pub role: Role,
+	pub project: Option<Thing>,
 	pub web_token: Value,
 }
 

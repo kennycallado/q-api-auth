@@ -5,10 +5,7 @@ use surrealdb::sql::Thing;
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(crate = "rocket::serde")]
-pub struct Project {
+pub struct Center {
 	pub id: Thing,
 	pub name: Cow<'static, str>,
-    pub state: Cow<'static, str>,
-    pub token: Cow<'static, str>,
-    pub center: Thing,
 }
