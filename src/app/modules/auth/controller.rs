@@ -41,7 +41,10 @@ async fn signin(
 
 	if cred.username.contains("guest") {
 		// generate a guest user
-		cred.username = global::generate_guest_user(&db).await?.username;
+		let temp = global::generate_guest_user(&db).await?;
+
+        cred.username = temp.username;
+        cred.password = temp.password;
 	}
 
 	let response = global::login(db, cred).await?;
@@ -81,10 +84,13 @@ async fn refresh(
 			response = global::refresh_global_token(token)?;
 			Ok(Json(response.into()))
 		}
-		"interventions" => {
+		// "interventions" => {
+		// 	response = interv::refresh_interv_token(db, &cred.db, token).await?;
+		// 	Ok(Json(response.into()))
+		// }
+		_ => {
 			response = interv::refresh_interv_token(db, &cred.db, token).await?;
 			Ok(Json(response.into()))
-		}
-		_ => Err(Status::BadRequest),
+        }
 	}
 }
