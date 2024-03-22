@@ -17,22 +17,25 @@ use crate::app::providers::services::auth::db::DbAuth;
 use crate::app::providers::services::auth::token::Token;
 
 pub async fn signup(db: &DbAuth, cred: CredentialsSignup) -> Result<AuthUser, Status> {
-    let project: Option<Thing> = match cred.project {
-        Some(project) => {
-            let temp: Vec<&str> = project.split(":").collect();
-            if temp.len() != 2 || temp[0].is_empty() || temp[1].is_empty() || temp[0] != "projects" {
-                eprintln!("Bad project id");
-                return Err(Status::BadRequest)
-            }
+	let project: Option<Thing> = match cred.project {
+		Some(project) => {
+			let temp: Vec<&str> = project.split(":").collect();
+			if temp.len() != 2
+				|| temp[0].is_empty()
+				|| temp[1].is_empty()
+				|| temp[0] != "projects"
+			{
+				eprintln!("Bad project id");
+				return Err(Status::BadRequest);
+			}
 
-            Some(Thing::from((temp[0], temp[1]))) // doesn't work well with numbers
-        },
-        None => None,
-    };
+			Some(Thing::from((temp[0], temp[1]))) // doesn't work well with numbers
+		}
+		None => None,
+	};
 
-
-    // create user
-    let mut query =
+	// create user
+	let mut query =
         db.0.query(r#"
         RETURN CREATE users CONTENT { username: $b_username, password: $b_password, project: $b_project, role: 'parti' };
         RETURN SELECT * FROM ONLY $b_project LIMIT 1;
@@ -47,50 +50,53 @@ pub async fn signup(db: &DbAuth, cred: CredentialsSignup) -> Result<AuthUser, St
             Status::InternalServerError
         })?;
 
-    let center: Option<String> = query.take(query.num_statements() - 1).map_err(|_| {
-        dbg!("Error getting center");
-        Status::InternalServerError
-    })?;
+	let center: Option<String> = query.take(query.num_statements() - 1).map_err(|_| {
+		dbg!("Error getting center");
+		Status::InternalServerError
+	})?;
 
 	let project: Option<Project> = query.take(query.num_statements() - 1).map_err(|_| {
 		dbg!("Error getting project");
 		Status::InternalServerError
 	})?;
 
-    let user: UserGlobal = query
-        .take(query.num_statements() - 1)
-        .map(|user: Option<UserGlobalPrev>| {
-            let user = user.expect("User not found");
+	let user: UserGlobal = query
+		.take(query.num_statements() - 1)
+		.map(|user: Option<UserGlobalPrev>| {
+			let user = user.expect("User not found");
 
-            UserGlobal {
-                id: user.id,
-                project: user.project,
-                username: user.username,
-                password: user.password,
-                role: user.role.into(),
-                web_token: user.web_token,
-            }
-        }).map_err(|e| {
-            let foo = surrealdb::Error::from(e).to_string();
-            if foo.contains("users_username") { return Status::Conflict } // index unique
+			UserGlobal {
+				id: user.id,
+				project: user.project,
+				username: user.username,
+				password: user.password,
+				role: user.role.into(),
+				web_token: user.web_token,
+			}
+		})
+		.map_err(|e| {
+			let foo = surrealdb::Error::from(e).to_string();
+			if foo.contains("users_username") {
+				return Status::Conflict;
+			} // index unique
 
-            eprintln!("Error getting user: {:?}", foo);
-            dbg!("Error getting user");
-            Status::InternalServerError
-        })?;
+			eprintln!("Error getting user: {:?}", foo);
+			dbg!("Error getting user");
+			Status::InternalServerError
+		})?;
 
-    let mut user = AuthUser::from(&user);
-    if let Some(center) = center {
-        user.center = json::to_value(center).unwrap();
-    }
+	let mut user = AuthUser::from(&user);
+	if let Some(center) = center {
+		user.center = json::to_value(center).unwrap();
+	}
 
-    if let Some(project) = project {
-        user.project = json::to_value(ProjectToSend::from(project)).unwrap();
-    }
+	if let Some(project) = project {
+		user.project = json::to_value(ProjectToSend::from(project)).unwrap();
+	}
 
-    user.token = generate_global_token(&user.id, user.role.clone().into())?;
+	user.token = generate_global_token(&user.id, user.role.clone().into())?;
 
-    Ok(user)
+	Ok(user)
 }
 
 pub async fn generate_guest_user(db: &DbAuth) -> Result<UserGlobal, Status> {
@@ -107,10 +113,10 @@ pub async fn generate_guest_user(db: &DbAuth) -> Result<UserGlobal, Status> {
             Status::InternalServerError
         })?;
 
-    let password: Option<String> = query.take(query.num_statements() - 1).map_err(|_| {
-        dbg!("Error getting password");
-        Status::InternalServerError
-    })?;
+	let password: Option<String> = query.take(query.num_statements() - 1).map_err(|_| {
+		dbg!("Error getting password");
+		Status::InternalServerError
+	})?;
 
 	let user: UserGlobal = query
 		.take(query.num_statements() - 1)
@@ -120,8 +126,8 @@ pub async fn generate_guest_user(db: &DbAuth) -> Result<UserGlobal, Status> {
 				id: user.id,
 				project: user.project,
 				username: user.username,
-                password: password.unwrap().into(),
-                role: user.role.into(),
+				password: password.unwrap().into(),
+				role: user.role.into(),
 				web_token: user.web_token,
 			}
 		})
@@ -134,7 +140,8 @@ pub async fn generate_guest_user(db: &DbAuth) -> Result<UserGlobal, Status> {
 }
 
 pub async fn login(db: &DbAuth, cred: CredentialsSignin) -> Result<AuthUser, Status> {
-	let (mut user_to_send, role) = get_user_from_username(db, &cred.username, &cred.password).await?;
+	let (mut user_to_send, role) =
+		get_user_from_username(db, &cred.username, &cred.password).await?;
 	user_to_send.token = generate_global_token(&user_to_send.id, role)?;
 
 	Ok(user_to_send)
@@ -188,7 +195,7 @@ fn generate_global_token(
 pub async fn get_user_from_username(
 	db: &DbAuth,
 	username: &Cow<'static, str>,
-    password: &Cow<'static, str>,
+	password: &Cow<'static, str>,
 ) -> Result<(AuthUser, Role), Status> {
 	let mut query =
 		db.0.query(
@@ -210,10 +217,10 @@ pub async fn get_user_from_username(
 			Status::InternalServerError
 		})?;
 
-    let center: Option<String> = query.take(query.num_statements() - 1).map_err(|_| {
-        dbg!("Error getting center");
-        Status::InternalServerError
-    })?;
+	let center: Option<String> = query.take(query.num_statements() - 1).map_err(|_| {
+		dbg!("Error getting center");
+		Status::InternalServerError
+	})?;
 
 	let project: Option<Project> = query.take(query.num_statements() - 1).map_err(|_| {
 		dbg!("Error getting project");
@@ -228,8 +235,8 @@ pub async fn get_user_from_username(
 				id: user.id,
 				project: user.project,
 				username: user.username,
-                password: user.password,
-                role: user.role.into(),
+				password: user.password,
+				role: user.role.into(),
 				web_token: user.web_token,
 			}
 		})
@@ -240,9 +247,9 @@ pub async fn get_user_from_username(
 
 	let mut auth_user = AuthUser::from(&user);
 
-    if let Some(center) = center {
-        auth_user.center = json::to_value(center).unwrap();
-    }
+	if let Some(center) = center {
+		auth_user.center = json::to_value(center).unwrap();
+	}
 
 	if let Some(project) = project {
 		auth_user.project = json::to_value(ProjectToSend::from(project)).unwrap();

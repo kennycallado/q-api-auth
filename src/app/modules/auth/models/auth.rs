@@ -10,9 +10,9 @@ use crate::app::providers::models::user::UserGlobal;
 #[serde(crate = "rocket::serde")]
 pub struct AuthUser {
 	pub id: Cow<'static, str>,
-    pub role: Cow<'static, str>,
+	pub role: Cow<'static, str>,
 	pub project: Value,
-    pub center: Value,
+	pub center: Value,
 	pub username: Cow<'static, str>,
 	pub token: Cow<'static, str>,
 }
@@ -21,8 +21,8 @@ impl From<&UserGlobal> for AuthUser {
 	fn from(user: &UserGlobal) -> Self {
 		AuthUser {
 			id: user.id.to_string().into(),
-            role: user.role.clone().into(),
-            center: Value::Null,
+			role: user.role.clone().into(),
+			center: Value::Null,
 			project: user.project.clone().map(|p| p.to_string().into()).unwrap_or(Value::Null),
 			username: user.username.to_owned(),
 			token: "".into(),

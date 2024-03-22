@@ -26,12 +26,10 @@ pub async fn inject_guest(
 		cred.ns, cred.db,
 	);
 
-	let mut query = db.0.query(sql)
-        .await
-        .map_err(|_| {
-            dbg!("Error querying");
-            Status::InternalServerError
-	    })?;
+	let mut query = db.0.query(sql).await.map_err(|_| {
+		dbg!("Error querying");
+		Status::InternalServerError
+	})?;
 
 	let pass: Option<String> = query
 		.take(query.num_statements() - 1)
@@ -64,14 +62,8 @@ pub async fn join(
 		return Err(Status::InternalServerError);
 	}
 
-	let mut claims = Claims::new(
-		cred.ns,
-		cred.db,
-		"user".into(),
-		"user_scope".into(),
-		user_id,
-		claims.role,
-	);
+	let mut claims =
+		Claims::new(cred.ns, cred.db, "user".into(), "user_scope".into(), user_id, claims.role);
 
 	match claims.encode_for_access(secret_key.as_ref()) {
 		Ok(token) => Ok(token.into()),
@@ -144,8 +136,9 @@ async fn get_project_token(
 	db: &DbAuth,
 	project_name: &Cow<'static, str>,
 ) -> Result<String, Status> {
-	let mut query =
-		db.0.query("RETURN SELECT VALUE token FROM ONLY projects WHERE name = $b_project LIMIT 1;")
+	let mut query = db
+		.0
+		.query("RETURN SELECT VALUE token FROM ONLY projects WHERE name = $b_project LIMIT 1;")
 		.bind(("b_project", project_name))
 		.await
 		.map_err(|_| {

@@ -7,8 +7,8 @@ use serde::Deserialize;
 pub struct DatabaseConfig {
 	pub host: Cow<'static, str>,
 	pub port: u16,
-    pub namespace: Cow<'static, str>,
-    pub database: Cow<'static, str>,
+	pub namespace: Cow<'static, str>,
+	pub database: Cow<'static, str>,
 	pub username: Cow<'static, str>,
 	pub password: Cow<'static, str>,
 }

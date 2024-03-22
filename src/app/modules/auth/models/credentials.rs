@@ -6,15 +6,15 @@ use serde::Deserialize;
 #[serde(crate = "rocket::serde")]
 pub struct CredentialsSignup {
 	pub username: Cow<'static, str>,
-    pub password: Cow<'static, str>,
-    pub project: Option<Cow<'static, str>>,
+	pub password: Cow<'static, str>,
+	pub project: Option<Cow<'static, str>>,
 }
 
 #[derive(Deserialize)]
 #[serde(crate = "rocket::serde")]
 pub struct CredentialsSignin {
 	pub username: Cow<'static, str>,
-    pub password: Cow<'static, str>,
+	pub password: Cow<'static, str>,
 }
 
 #[derive(Deserialize)]

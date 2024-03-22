@@ -8,7 +8,7 @@ use surrealdb::sql::Thing;
 pub struct Project {
 	pub id: Thing,
 	pub name: Cow<'static, str>,
-    pub state: Cow<'static, str>,
-    pub token: Cow<'static, str>,
-    pub center: Thing,
+	pub state: Cow<'static, str>,
+	pub token: Cow<'static, str>,
+	pub center: Thing,
 }

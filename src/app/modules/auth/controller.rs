@@ -5,7 +5,9 @@ use rocket::State;
 use super::handlers::{global, interv};
 
 use super::models::auth::{AuthToken, AuthUser};
-use super::models::credentials::{CredentialsJoin, CredentialsSignin, CredentialsRefresh, CredentialsSignup};
+use super::models::credentials::{
+	CredentialsJoin, CredentialsRefresh, CredentialsSignin, CredentialsSignup,
+};
 
 use crate::app::providers::services::auth::claims::Claims;
 use crate::app::providers::services::auth::db::DbAuth;
@@ -23,13 +25,13 @@ pub async fn options_all() -> Status {
 #[post("/signup", data = "<credentials>")]
 async fn signup(
 	db: &State<DbAuth>,
-	credentials: Json<CredentialsSignup>
+	credentials: Json<CredentialsSignup>,
 ) -> Result<Json<AuthUser>, Status> {
-    let cred = credentials.into_inner();
+	let cred = credentials.into_inner();
 
-    let response = global::signup(db, cred).await?;
+	let response = global::signup(db, cred).await?;
 
-    Ok(Json(response))
+	Ok(Json(response))
 }
 
 #[post("/login", data = "<credentials>")]
@@ -43,8 +45,8 @@ async fn signin(
 		// generate a guest user
 		let temp = global::generate_guest_user(&db).await?;
 
-        cred.username = temp.username;
-        cred.password = temp.password;
+		cred.username = temp.username;
+		cred.password = temp.password;
 	}
 
 	let response = global::login(db, cred).await?;
@@ -91,6 +93,6 @@ async fn refresh(
 		_ => {
 			response = interv::refresh_interv_token(db, &cred.db, token).await?;
 			Ok(Json(response.into()))
-        }
+		}
 	}
 }
