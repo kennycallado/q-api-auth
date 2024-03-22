@@ -7,6 +7,7 @@ use surrealdb::sql::Thing;
 #[derive(Debug, Clone, Deserialize)]
 #[serde(crate = "rocket::serde")]
 pub enum Role {
+    Robot,
 	Admin,
     Coord,
     Thera,
@@ -17,6 +18,7 @@ pub enum Role {
 impl From<Role> for Cow<'static, str> {
 	fn from(role: Role) -> Self {
 		match role {
+            Role::Robot => Cow::Borrowed("robot"),
 			Role::Admin => Cow::Borrowed("admin"),
             Role::Coord => Cow::Borrowed("coord"),
             Role::Thera => Cow::Borrowed("thera"),
@@ -29,6 +31,7 @@ impl From<Role> for Cow<'static, str> {
 impl From<String> for Role {
     fn from(role: String) -> Self {
         match role.as_ref() {
+            "robot" => Role::Robot,
             "admin" => Role::Admin,
             "coord" => Role::Coord,
             "thera" => Role::Thera,
@@ -42,6 +45,7 @@ impl From<String> for Role {
 impl From<Cow<'static, str>> for Role {
 	fn from(role: Cow<'static, str>) -> Self {
 		match role.as_ref() {
+            "robot" => Role::Robot,
 			"admin" => Role::Admin,
             "coord" => Role::Coord,
             "thera" => Role::Thera,
