@@ -86,12 +86,13 @@ pub async fn signup(db: &DbAuth, cred: CredentialsSignup) -> Result<AuthUser, St
 		})?;
 
 	let mut user = AuthUser::from(&user);
-	if let Some(center) = center {
-		user.center = json::to_value(center).unwrap();
-	}
 
 	if let Some(project) = project {
 		user.project = json::to_value(ProjectToSend::from(project)).unwrap();
+	}
+
+	if let Some(center) = center {
+		user.project["center"] = json::to_value(center).unwrap();
 	}
 
 	user.token = generate_global_token(&user.id, user.role.clone().into())?;
@@ -247,12 +248,12 @@ pub async fn get_user_from_username(
 
 	let mut auth_user = AuthUser::from(&user);
 
-	if let Some(center) = center {
-		auth_user.center = json::to_value(center).unwrap();
-	}
-
 	if let Some(project) = project {
 		auth_user.project = json::to_value(ProjectToSend::from(project)).unwrap();
+	}
+
+	if let Some(center) = center {
+		auth_user.project["center"] = json::to_value(center).unwrap();
 	}
 
 	Ok((auth_user, user.role))
