@@ -1,20 +1,16 @@
 use crate::app::modules::routing as modules_routing;
 
 use crate::app::providers::config::cors;
-#[cfg(feature = "auth")]
 use crate::app::providers::services::auth::db::DbAuth;
 
 #[launch]
 pub async fn rocket() -> _ {
-	#[allow(unused_mut)]
-	let mut rocket = rocket::build();
 
-	#[cfg(feature = "auth")]
-	{
-		rocket = rocket.manage(DbAuth::new().await);
-	}
-
-	rocket.attach(cors::Cors).attach(system::router()).attach(modules_routing::router())
+	rocket::build()
+        .attach(cors::Cors)
+        .attach(system::router())
+        .attach(modules_routing::router())
+        .manage(DbAuth::new().await)
 }
 
 mod system {
