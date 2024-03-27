@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   surrealdb:
-    image: kennycallado/q-api-store:latest
+    image: kennycallado/q-api-store-demo:latest
     container_name: surrealdb
     ports:
       - "8000:8000"
