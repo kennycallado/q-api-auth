@@ -9,12 +9,23 @@ GET # workaround
 ### modules
 # {{{ AUTH
 
+POST http://localhost:8080/auth/signup
+Accept: application/json
+Content-type: application/json
+
+{
+  "username": "user",
+  "password": "user",
+  "project": "projects:v1dvzpe9i8api3xp4rms"
+}
+
 POST http://localhost:8080/auth/login
 Accept: application/json
 Content-type: application/json
 
 {
-  "username": "guest"
+  "username": "kenny",
+  "password": "kenny"
 }
 
 POST http://localhost:8080/auth/refresh
@@ -28,13 +39,25 @@ Content-type: application/json
   "token": ""
 }
 
+## kenny
 POST http://localhost:8080/auth/join
 Accept: application/json
 Authorization: Bearer 
 Content-type: application/json
 
 {
-  "ns": "interventions",
+  "ns": "demo",
+  "db": "demo",
+  "pass": "01HJTEBG4Y1EAXPATENCDCT7WW"
+}
+
+POST http://localhost:8080/auth/join
+Accept: application/json
+Authorization: Bearer 
+Content-type: application/json
+
+{
+  "ns": "demo",
   "db": "demo",
   "pass": "guest"
 }
@@ -45,7 +68,7 @@ Authorization: Bearer
 Content-Type: application/json
 
 {
-  "ns": "interventions",
+  "ns": "demo",
   "db": "demo",
   "token": ""
 }
@@ -56,7 +79,7 @@ Accept: application/json
 Content-Type: application/json
 
 {
-  "ns": "interventions",
+  "ns": "demo",
   "db": "demo",
   "sc": "user",
   "pass": "01HJTEBG4Y1EAXPATENCDCT7WW"
