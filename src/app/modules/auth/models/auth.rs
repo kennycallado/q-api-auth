@@ -32,7 +32,7 @@ impl From<&UserGlobal> for AuthUser {
 #[serde(crate = "rocket::serde")]
 pub struct ProjectToSend {
 	pub id: Cow<'static, str>,
-    pub center: Option<Cow<'static, str>>,
+	pub center: Option<Cow<'static, str>>,
 	pub name: Cow<'static, str>,
 }
 
@@ -40,7 +40,7 @@ impl From<Project> for ProjectToSend {
 	fn from(project: Project) -> Self {
 		ProjectToSend {
 			id: project.id.to_string().into(),
-            center: None,
+			center: None,
 			name: project.name,
 		}
 	}

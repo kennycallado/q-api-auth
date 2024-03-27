@@ -5,12 +5,11 @@ use crate::app::providers::services::auth::db::DbAuth;
 
 #[launch]
 pub async fn rocket() -> _ {
-
 	rocket::build()
-        .attach(cors::Cors)
-        .attach(system::router())
-        .attach(modules_routing::router())
-        .manage(DbAuth::new().await)
+		.attach(cors::Cors)
+		.attach(system::router())
+		.attach(modules_routing::router())
+		.manage(DbAuth::new().await)
 }
 
 mod system {
