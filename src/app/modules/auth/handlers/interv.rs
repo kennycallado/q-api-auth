@@ -103,9 +103,7 @@ async fn validate_pass(db: &DbAuth, cred: &CredentialsJoin) -> Result<UserInterv
 	let sql = format!(
 		r#"
         USE NS {} DB {};
-        LET $q_user = (SELECT * FROM ONLY users WHERE crypto::argon2::compare(pass, '{}') LIMIT 1);
-
-        RETURN $q_user;
+        RETURN SELECT * FROM ONLY users WHERE crypto::argon2::compare(pass, '{}') LIMIT 1;
         "#,
 		cred.ns, cred.db, cred.pass,
 	);
@@ -119,9 +117,12 @@ async fn validate_pass(db: &DbAuth, cred: &CredentialsJoin) -> Result<UserInterv
 		.take(query.num_statements() - 1)
 		.map(|user: Option<UserIntervPrev>| {
 			let user = user.unwrap();
+
 			UserInterv {
 				id: user.id,
 				pass: user.pass,
+				role: user.role.into(),
+				state: user.state.into(),
 			}
 		})
 		.map_err(|_| {

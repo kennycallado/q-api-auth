@@ -82,11 +82,57 @@ pub struct UserGlobal {
 pub struct UserIntervPrev {
 	pub id: Thing,
 	pub pass: Cow<'static, str>,
+	pub role: Cow<'static, str>,
+	pub state: Cow<'static, str>,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(crate = "rocket::serde")]
 pub struct UserInterv {
 	pub id: Thing,
+	pub role: Role,
 	pub pass: Cow<'static, str>,
+	pub state: Cow<'static, str>,
+}
+
+impl From<UserIntervPrev> for UserInterv {
+	fn from(user: UserIntervPrev) -> UserInterv {
+		UserInterv {
+			id: user.id,
+			pass: user.pass,
+			role: user.role.into(),
+			state: user.state.into(),
+		}
+	}
+}
+
+#[derive(Debug, Deserialize)]
+pub enum UserState {
+	Active,
+	Exited,
+	Standby,
+	Completed,
+}
+
+impl From<UserState> for Cow<'static, str> {
+	fn from(state: UserState) -> Cow<'static, str> {
+		match state {
+			UserState::Active => Cow::Borrowed("active"),
+			UserState::Exited => Cow::Borrowed("exited"),
+			UserState::Standby => Cow::Borrowed("standby"),
+			UserState::Completed => Cow::Borrowed("completed"),
+		}
+	}
+}
+
+impl From<Cow<'static, str>> for UserState {
+	fn from(state: Cow<'static, str>) -> UserState {
+		match state.as_ref() {
+			"active" => UserState::Active,
+			"exited" => UserState::Exited,
+			"standby" => UserState::Standby,
+			"completed" => UserState::Completed,
+			_ => UserState::Active,
+		}
+	}
 }
