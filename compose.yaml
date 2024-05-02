@@ -17,3 +17,12 @@ services:
       - --user=root
       - --pass=root
       - --bind=0.0.0.0:8000
+
+  super:
+    container_name: super
+    image: kennycallado/q-api-super:latest
+    pull_policy: "always"
+    depends_on:
+      - surrealdb
+    environment:
+      DB_HOST: surrealdb:8000

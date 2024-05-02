@@ -16,7 +16,7 @@ Content-type: application/json
 {
   "username": "user",
   "password": "user",
-  "project": "projects:v1dvzpe9i8api3xp4rms"
+  "project": "projects:g1"
 }
 
 POST http://localhost:8080/auth/login
@@ -24,8 +24,8 @@ Accept: application/json
 Content-type: application/json
 
 {
-  "username": "kenny",
-  "password": "kenny"
+  "username": "user",
+  "password": "user"
 }
 
 POST http://localhost:8080/auth/refresh
@@ -48,9 +48,10 @@ Content-type: application/json
 {
   "ns": "demo",
   "db": "demo",
-  "pass": "01HJTEBG4Y1EAXPATENCDCT7WW"
+  "pass": "01HWX5KJ8KGE7HKPRST4R5PYYW"
 }
 
+## does not work
 POST http://localhost:8080/auth/join
 Accept: application/json
 Authorization: Bearer 
