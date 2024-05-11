@@ -13,7 +13,8 @@ pub struct AuthUser {
 	pub role: Cow<'static, str>,
 	pub project: Value,
 	pub username: Cow<'static, str>,
-	pub token: Cow<'static, str>,
+	pub g_token: Cow<'static, str>,
+	pub p_token: Option<Cow<'static, str>>,
 }
 
 impl From<&UserGlobal> for AuthUser {
@@ -23,7 +24,8 @@ impl From<&UserGlobal> for AuthUser {
 			role: user.role.clone().into(),
 			project: user.project.clone().map(|p| p.to_string().into()).unwrap_or(Value::Null),
 			username: user.username.to_owned(),
-			token: "".into(),
+			g_token: "".into(),
+			p_token: None,
 		}
 	}
 }

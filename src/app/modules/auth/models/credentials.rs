@@ -12,7 +12,7 @@ pub struct CredentialsSignup {
 
 #[derive(Deserialize)]
 #[serde(crate = "rocket::serde")]
-pub struct CredentialsSignin {
+pub struct CredentialsLogin {
 	pub username: Cow<'static, str>,
 	pub password: Cow<'static, str>,
 }

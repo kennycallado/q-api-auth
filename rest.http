@@ -6,9 +6,7 @@ GET # workaround
 
 # }}}
 
-### modules
-# {{{ AUTH
-
+# {{{
 POST http://localhost:8080/auth/signup
 Accept: application/json
 Content-type: application/json
@@ -28,6 +26,13 @@ Content-type: application/json
   "password": "user"
 }
 
+GET http://localhost:8080/auth/refresh
+Accept: application/json
+Authorization: Bearer 
+Content-type: application/json
+# }}}
+
+# {{{ will be removed
 POST http://localhost:8080/auth/refresh
 Accept: application/json
 Authorization: Bearer 
@@ -74,7 +79,6 @@ Content-Type: application/json
   "token": ""
 }
 
-### will be removed
 POST http://localhost:8000/signin
 Accept: application/json
 Content-Type: application/json
@@ -85,18 +89,4 @@ Content-Type: application/json
   "sc": "user",
   "pass": "01HJTEBG4Y1EAXPATENCDCT7WW"
 }
-
-# }}}
-
-GET http://localhost:8000/key/papers
-Accept: application/json
-Authorization: Bearer 
-
-# {{{ 
-GET http://localhost:8080/
-Accept: application/json
-
-GET http://localhost:8080/foo
-Accept: application/json
-
 # }}}
