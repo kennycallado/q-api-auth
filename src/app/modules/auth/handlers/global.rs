@@ -14,7 +14,7 @@ use crate::app::providers::models::user::{Role, UserGlobal, UserGlobalPrev};
 
 use crate::app::providers::services::auth::claims::Claims;
 use crate::app::providers::services::auth::db::DbAuth;
-use crate::app::providers::services::auth::token::Token;
+// use crate::app::providers::services::auth::token::Token;
 
 pub async fn signup(db: &DbAuth, cred: CredentialsSignup) -> Result<AuthUser, Status> {
 	let project: Option<Thing> = match cred.project {
@@ -136,45 +136,46 @@ pub fn add_tokens(
 	Ok(())
 }
 
-pub async fn generate_guest_user(db: &DbAuth) -> Result<UserGlobal, Status> {
-	let mut query =
-		db.0.query(r#"
-        LET $q_password = rand::string();
+// pub async fn generate_guest_user(db: &DbAuth) -> Result<UserGlobal, Status> {
+// 	let mut query =
+// 		db.0.query(r#"
+//         LET $q_password = rand::string();
 
-        RETURN CREATE users CONTENT { username: rand::string(), password: $q_password, role: 'guest' };
-        RETURN $q_password;
-        "#)
-        .await
-        .map_err(|_| {
-            dbg!("Error creating user");
-            Status::InternalServerError
-        })?;
+//         RETURN CREATE users CONTENT { username: rand::string(), password: $q_password, role: 'guest' };
+//         RETURN $q_password;
+//         "#)
+//         .await
+//         .map_err(|_| {
+//             dbg!("Error creating user");
+//             Status::InternalServerError
+//         })?;
 
-	let password: Option<String> = query.take(query.num_statements() - 1).map_err(|_| {
-		dbg!("Error getting password");
-		Status::InternalServerError
-	})?;
+// 	let password: Option<String> = query.take(query.num_statements() - 1).map_err(|_| {
+// 		dbg!("Error getting password");
+// 		Status::InternalServerError
+// 	})?;
 
-	let user: UserGlobal = query
-		.take(query.num_statements() - 1)
-		.map(|user: Option<UserGlobalPrev>| {
-			let user = user.unwrap();
-			UserGlobal {
-				id: user.id,
-				project: user.project,
-				username: user.username,
-				password: password.unwrap().into(),
-				role: user.role.into(),
-				web_token: user.web_token,
-			}
-		})
-		.map_err(|_| {
-			dbg!("Error getting user");
-			Status::InternalServerError
-		})?;
+// 	let user: UserGlobal = query
+// 		.take(query.num_statements() - 1)
+// 		.map(|user: Option<UserGlobalPrev>| {
+// 			let user = user.unwrap();
 
-	Ok(user)
-}
+// 			UserGlobal {
+// 				id: user.id,
+// 				project: user.project,
+// 				username: user.username,
+// 				password: password.unwrap().into(),
+// 				// role: user.role.into(),
+// 				web_token: user.web_token,
+// 			}
+// 		})
+// 		.map_err(|_| {
+// 			dbg!("Error getting user");
+// 			Status::InternalServerError
+// 		})?;
+
+// 	Ok(user)
+// }
 
 pub async fn login(db: &DbAuth, cred: CredentialsLogin) -> Result<AuthUser, Status> {
 	let user_to_send = get_user_from_username(db, &cred.username, &cred.password).await?;
@@ -185,25 +186,25 @@ pub async fn login(db: &DbAuth, cred: CredentialsLogin) -> Result<AuthUser, Stat
 	Ok(user_to_send)
 }
 
-pub fn refresh_global_token(token: Token) -> Result<Cow<'static, str>, Status> {
-	let secret_key = ConfigGetter::get_secret_key();
+// pub fn refresh_global_token(token: Token) -> Result<Cow<'static, str>, Status> {
+// 	let secret_key = ConfigGetter::get_secret_key();
 
-	let mut claims = match token.decode(secret_key.as_ref()) {
-		Ok(claims) => claims.claims,
-		Err(_) => {
-			dbg!("Error decoding token");
-			return Err(Status::InternalServerError);
-		}
-	};
+// 	let mut claims = match token.decode(secret_key.as_ref()) {
+// 		Ok(claims) => claims.claims,
+// 		Err(_) => {
+// 			dbg!("Error decoding token");
+// 			return Err(Status::InternalServerError);
+// 		}
+// 	};
 
-	match claims.encode_for_access(secret_key.as_ref()) {
-		Ok(token) => Ok(token.into()),
-		Err(_) => {
-			dbg!("Error encoding token");
-			Err(Status::InternalServerError)
-		}
-	}
-}
+// 	match claims.encode_for_access(secret_key.as_ref()) {
+// 		Ok(token) => Ok(token.into()),
+// 		Err(_) => {
+// 			dbg!("Error encoding token");
+// 			Err(Status::InternalServerError)
+// 		}
+// 	}
+// }
 
 fn generate_project_token(
 	ns: Cow<'static, str>,

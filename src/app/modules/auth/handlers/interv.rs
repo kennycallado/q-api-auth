@@ -120,7 +120,7 @@ async fn validate_pass(db: &DbAuth, cred: &CredentialsJoin) -> Result<UserInterv
 
 			UserInterv {
 				id: user.id,
-				pass: user.pass,
+				// pass: user.pass,
 				role: user.role.into(),
 				state: user.state.into(),
 			}

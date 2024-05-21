@@ -7,14 +7,21 @@ use super::handlers::{
     // interv
 };
 
-use super::models::auth::{AuthToken, AuthUser};
+use super::models::auth::{
+    // AuthToken,
+    AuthUser
+};
+
 use super::models::credentials::{
-	CredentialsJoin, CredentialsLogin, CredentialsRefresh, CredentialsSignup,
+	// CredentialsJoin,
+    CredentialsLogin,
+    // CredentialsRefresh,
+    CredentialsSignup,
 };
 
 use crate::app::providers::services::auth::claims::Claims;
 use crate::app::providers::services::auth::db::DbAuth;
-use crate::app::providers::services::auth::token::Token;
+// use crate::app::providers::services::auth::token::Token;
 
 pub fn routes() -> Vec<rocket::Route> {
 	routes![options_all, signup, login, g_refresh,] // join, refresh, ]
@@ -42,7 +49,8 @@ async fn login(
 	db: &State<DbAuth>,
 	credentials: Json<CredentialsLogin>,
 ) -> Result<Json<AuthUser>, Status> {
-	let mut cred = credentials.into_inner();
+	// let mut cred = credentials.into_inner();
+	let cred = credentials.into_inner();
 
 	// if cred.username.contains("guest") {
 	// 	// generate a guest user
