@@ -270,6 +270,7 @@ pub async fn get_auth_from_id(db: &DbAuth, id: &Cow<'static, str>) -> Result<Aut
             RETURN $q_user;
             RETURN $q_project;
             RETURN $q_center;
+            RETURN (SELECT VALUE ->roled.role AS role FROM ONLY $q_user.id)[0];
             "#,
 		)
 		.bind(("b_id", id))
@@ -278,6 +279,13 @@ pub async fn get_auth_from_id(db: &DbAuth, id: &Cow<'static, str>) -> Result<Aut
 			dbg!("Error querying user");
 			Status::InternalServerError
 		})?;
+
+	let role: Option<Cow<'static, str>> =
+		query.take(query.num_statements() - 1).map_err(|_| {
+			dbg!("Error getting center");
+			Status::InternalServerError
+		})?;
+    let role = role.unwrap();
 
 	let center: Option<Cow<'static, str>> =
 		query.take(query.num_statements() - 1).map_err(|_| {
@@ -312,7 +320,7 @@ pub async fn get_auth_from_id(db: &DbAuth, id: &Cow<'static, str>) -> Result<Aut
 	// let mut auth_user = AuthUser::from(&user);
     let mut auth_user = AuthUser {
         id: user.id.to_string().into(),
-        role: "parti".into(),
+        role,
         project: project.as_ref().map(|p| p.id.to_string().into()).unwrap_or(Value::Null),
         username: user.username,
         g_token: "".into(),
@@ -339,6 +347,7 @@ pub async fn get_user_from_username(
             RETURN $q_user;
             RETURN $q_project;
             RETURN $q_center;
+            RETURN (SELECT VALUE ->roled.role AS role FROM ONLY $q_user.id)[0];
             "#,
 		)
 		.bind(("b_username", username))
@@ -348,6 +357,13 @@ pub async fn get_user_from_username(
 			dbg!("Error querying user");
 			Status::InternalServerError
 		})?;
+
+	let role: Option<Cow<'static, str>> =
+		query.take(query.num_statements() - 1).map_err(|_| {
+			dbg!("Error getting center");
+			Status::InternalServerError
+		})?;
+    let role = role.unwrap();
 
 	let center: Option<Cow<'static, str>> =
 		query.take(query.num_statements() - 1).map_err(|_| {
@@ -382,7 +398,7 @@ pub async fn get_user_from_username(
 	// let mut auth_user = AuthUser::from(&user);
     let mut auth_user = AuthUser {
         id: user.id.to_string().into(),
-        role: "parti".into(),
+        role,
         project: project.as_ref().map(|p| p.id.to_string().into()).unwrap_or(Value::Null),
         username: user.username,
         g_token: "".into(),
