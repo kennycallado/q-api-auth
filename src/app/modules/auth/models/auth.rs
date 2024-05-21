@@ -4,7 +4,7 @@ use rocket::serde::json::Value;
 use rocket::serde::Serialize;
 
 use crate::app::providers::models::project::Project;
-use crate::app::providers::models::user::UserGlobal;
+// use crate::app::providers::models::user::UserGlobal;
 
 #[derive(Debug, Serialize)]
 #[serde(crate = "rocket::serde")]
@@ -17,18 +17,18 @@ pub struct AuthUser {
 	pub p_token: Option<Cow<'static, str>>,
 }
 
-impl From<&UserGlobal> for AuthUser {
-	fn from(user: &UserGlobal) -> Self {
-		AuthUser {
-			id: user.id.to_string().into(),
-			role: user.role.clone().into(),
-			project: user.project.clone().map(|p| p.to_string().into()).unwrap_or(Value::Null),
-			username: user.username.to_owned(),
-			g_token: "".into(),
-			p_token: None,
-		}
-	}
-}
+// impl From<&UserGlobal> for AuthUser {
+// 	fn from(user: &UserGlobal) -> Self {
+// 		AuthUser {
+// 			id: user.id.to_string().into(),
+// 			role: user.role.clone().into(),
+// 			project: user.project.clone().map(|p| p.to_string().into()).unwrap_or(Value::Null),
+// 			username: user.username.to_owned(),
+// 			g_token: "".into(),
+// 			p_token: None,
+// 		}
+// 	}
+// }
 
 #[derive(Debug, Serialize)]
 #[serde(crate = "rocket::serde")]

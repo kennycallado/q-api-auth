@@ -37,9 +37,15 @@ pub async fn signup(db: &DbAuth, cred: CredentialsSignup) -> Result<AuthUser, St
 	// create user
 	let mut query =
         db.0.query(r#"
-        RETURN CREATE users CONTENT { username: $b_username, password: $b_password, project: $b_project, role: 'parti' };
-        RETURN SELECT * FROM ONLY $b_project LIMIT 1;
-        RETURN SELECT VALUE center.name FROM ONLY $b_project LIMIT 1;
+            LET $q_user = CREATE users CONTENT { username: $b_username, password: $b_password, project: $b_project };
+            LET $q_user_id = $q_user.id;
+
+            RELATE $q_user_id->roled->(SELECT VALUE (->belongs->centers)[0] FROM ONLY $b_project) SET role = 'parti';
+            RELATE $q_user_id->join->$b_project;
+
+            RETURN SELECT * FROM $q_user_id;
+            RETURN SELECT * FROM ONLY $b_project LIMIT 1;
+            RETURN $b_project.center.name;
         "#)
         .bind(("b_username", &cred.username))
         .bind(("b_password", &cred.password))
@@ -71,7 +77,7 @@ pub async fn signup(db: &DbAuth, cred: CredentialsSignup) -> Result<AuthUser, St
 				project: user.project,
 				username: user.username,
 				password: user.password,
-				role: user.role.into(),
+				// role: user.role.into(),
 				web_token: user.web_token,
 			}
 		})
@@ -86,7 +92,15 @@ pub async fn signup(db: &DbAuth, cred: CredentialsSignup) -> Result<AuthUser, St
 			Status::InternalServerError
 		})?;
 
-	let mut user = AuthUser::from(&user);
+	// let mut user = AuthUser::from(&user);
+    let mut user = AuthUser {
+        id: user.id.to_string().into(),
+        role: "parti".into(),
+        project: project.as_ref().map(|p| p.id.to_string().into()).unwrap_or(json::Value::Null),
+        username: user.username,
+        g_token: "".into(),
+        p_token: None,
+    };
 
 	add_tokens(&mut user, project, center)?;
 
@@ -282,7 +296,7 @@ pub async fn get_auth_from_id(db: &DbAuth, id: &Cow<'static, str>) -> Result<Aut
 				project: user.project,
 				username: user.username,
 				password: user.password,
-				role: user.role.into(),
+				// role: user.role.into(),
 				web_token: user.web_token,
 			}
 		})
@@ -291,7 +305,16 @@ pub async fn get_auth_from_id(db: &DbAuth, id: &Cow<'static, str>) -> Result<Aut
 			Status::InternalServerError
 		})?;
 
-	let mut auth_user = AuthUser::from(&user);
+	// let mut auth_user = AuthUser::from(&user);
+    let mut auth_user = AuthUser {
+        id: user.id.to_string().into(),
+        role: "parti".into(),
+        project: project.as_ref().map(|p| p.id.to_string().into()).unwrap_or(json::Value::Null),
+        username: user.username,
+        g_token: "".into(),
+        p_token: None,
+    };
+
 	add_tokens(&mut auth_user, project, center)?;
 
 	Ok(auth_user)
@@ -343,7 +366,7 @@ pub async fn get_user_from_username(
 				project: user.project,
 				username: user.username,
 				password: user.password,
-				role: user.role.into(),
+				// role: user.role.into(),
 				web_token: user.web_token,
 			}
 		})
@@ -352,7 +375,15 @@ pub async fn get_user_from_username(
 			Status::InternalServerError
 		})?;
 
-	let mut auth_user = AuthUser::from(&user);
+	// let mut auth_user = AuthUser::from(&user);
+    let mut auth_user = AuthUser {
+        id: user.id.to_string().into(),
+        role: "parti".into(),
+        project: project.as_ref().map(|p| p.id.to_string().into()).unwrap_or(josn::Value::Null),
+        username: user.username,
+        g_token: "".into(),
+        p_token: None,
+    };
 
 	add_tokens(&mut auth_user, project, center)?;
 

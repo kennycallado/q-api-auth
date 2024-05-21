@@ -62,7 +62,7 @@ pub struct UserGlobalPrev {
 	pub id: Thing,
 	pub username: Cow<'static, str>,
 	pub password: Cow<'static, str>,
-	pub role: Cow<'static, str>,
+	// pub role: Cow<'static, str>,
 	pub project: Option<Thing>,
 	pub web_token: Value,
 }
@@ -73,7 +73,7 @@ pub struct UserGlobal {
 	pub id: Thing,
 	pub username: Cow<'static, str>,
 	pub password: Cow<'static, str>,
-	pub role: Role,
+	// pub role: Role,
 	pub project: Option<Thing>,
 	pub web_token: Value,
 }
@@ -81,7 +81,7 @@ pub struct UserGlobal {
 #[derive(Deserialize)]
 pub struct UserIntervPrev {
 	pub id: Thing,
-	pub pass: Cow<'static, str>,
+	// pub pass: Cow<'static, str>,
 	pub role: Cow<'static, str>,
 	pub state: Cow<'static, str>,
 }
@@ -91,7 +91,7 @@ pub struct UserIntervPrev {
 pub struct UserInterv {
 	pub id: Thing,
 	pub role: Role,
-	pub pass: Cow<'static, str>,
+	// pub pass: Cow<'static, str>,
 	pub state: Cow<'static, str>,
 }
 
@@ -99,7 +99,7 @@ impl From<UserIntervPrev> for UserInterv {
 	fn from(user: UserIntervPrev) -> UserInterv {
 		UserInterv {
 			id: user.id,
-			pass: user.pass,
+			// pass: user.pass,
 			role: user.role.into(),
 			state: user.state.into(),
 		}
