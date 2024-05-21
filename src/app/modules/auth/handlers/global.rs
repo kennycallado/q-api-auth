@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use rocket::http::Status;
-use rocket::serde::json;
+use rocket::serde::json::{self, Value};
 use surrealdb::sql::Thing;
 
 use crate::app::modules::auth::models::auth::{AuthUser, ProjectToSend};
@@ -42,6 +42,9 @@ pub async fn signup(db: &DbAuth, cred: CredentialsSignup) -> Result<AuthUser, St
 
             RELATE $q_user_id->roled->(SELECT VALUE (->belongs->centers)[0] FROM ONLY $b_project) SET role = 'parti';
             RELATE $q_user_id->join->$b_project;
+
+            -- RETURN CREATE users CONTENT { username: $b_username, password: $b_password, project: $b_project };
+            -- RETURN SELECT VALUE center.name FROM ONLY $b_project LIMIT 1;
 
             RETURN SELECT * FROM $q_user_id;
             RETURN SELECT * FROM ONLY $b_project LIMIT 1;
@@ -96,7 +99,7 @@ pub async fn signup(db: &DbAuth, cred: CredentialsSignup) -> Result<AuthUser, St
     let mut user = AuthUser {
         id: user.id.to_string().into(),
         role: "parti".into(),
-        project: project.as_ref().map(|p| p.id.to_string().into()).unwrap_or(json::Value::Null),
+        project: project.as_ref().map(|p| p.id.to_string().into()).unwrap_or(Value::Null),
         username: user.username,
         g_token: "".into(),
         p_token: None,
@@ -310,7 +313,7 @@ pub async fn get_auth_from_id(db: &DbAuth, id: &Cow<'static, str>) -> Result<Aut
     let mut auth_user = AuthUser {
         id: user.id.to_string().into(),
         role: "parti".into(),
-        project: project.as_ref().map(|p| p.id.to_string().into()).unwrap_or(json::Value::Null),
+        project: project.as_ref().map(|p| p.id.to_string().into()).unwrap_or(Value::Null),
         username: user.username,
         g_token: "".into(),
         p_token: None,
@@ -380,7 +383,7 @@ pub async fn get_user_from_username(
     let mut auth_user = AuthUser {
         id: user.id.to_string().into(),
         role: "parti".into(),
-        project: project.as_ref().map(|p| p.id.to_string().into()).unwrap_or(josn::Value::Null),
+        project: project.as_ref().map(|p| p.id.to_string().into()).unwrap_or(Value::Null),
         username: user.username,
         g_token: "".into(),
         p_token: None,
