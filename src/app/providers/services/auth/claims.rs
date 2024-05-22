@@ -12,7 +12,7 @@ pub struct Claims {
 	pub sc: Cow<'static, str>,
 	pub tk: Cow<'static, str>,
 	pub id: Cow<'static, str>,
-	pub role: Cow<'static, str>,
+	pub role: Option<Cow<'static, str>>,
 	iat: i64,
 	exp: i64,
 }
@@ -24,7 +24,7 @@ impl Claims {
 		sc: Cow<'static, str>,
 		tk: Cow<'static, str>,
 		id: Cow<'static, str>,
-		role: Cow<'static, str>,
+		role: Option<Cow<'static, str>>,
 	) -> Self {
 		Self {
 			ns,

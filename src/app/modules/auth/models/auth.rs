@@ -10,7 +10,7 @@ use crate::app::providers::models::project::Project;
 #[serde(crate = "rocket::serde")]
 pub struct AuthUser {
 	pub id: Cow<'static, str>,
-	pub role: Cow<'static, str>,
+	pub role: Option<Cow<'static, str>>,
 	pub project: Value,
 	pub username: Cow<'static, str>,
 	pub g_token: Cow<'static, str>,

@@ -98,7 +98,7 @@ pub async fn signup(db: &DbAuth, cred: CredentialsSignup) -> Result<AuthUser, St
 	// let mut user = AuthUser::from(&user);
     let mut user = AuthUser {
         id: user.id.to_string().into(),
-        role: "parti".into(),
+        role: Some("parti".into()),
         project: project.as_ref().map(|p| p.id.to_string().into()).unwrap_or(Value::Null),
         username: user.username,
         g_token: "".into(),
@@ -115,7 +115,7 @@ pub fn add_tokens(
 	project: Option<Project>,
 	center: Option<Cow<'static, str>>,
 ) -> Result<(), Status> {
-	user.g_token = generate_global_token(&user.id, user.role.clone().into())?;
+	user.g_token = generate_global_token(&user.id, user.role.as_ref())?;
 
 	if let Some(project) = project {
 		let project_name = project.name.clone();
@@ -132,7 +132,7 @@ pub fn add_tokens(
 			project_name,
 			project_secret,
 			&user.id,
-			&user.role,
+			user.role.as_ref(),
 		)?;
 	}
 
@@ -214,7 +214,7 @@ fn generate_project_token(
 	db: Cow<'static, str>,
 	project_secret: Cow<'static, str>,
 	user_id: &Cow<'static, str>,
-	role: &Cow<'static, str>,
+	role: Option<&Cow<'static, str>>,
 ) -> Result<Option<Cow<'static, str>>, Status> {
 	let mut claims = Claims::new(
 		ns,
@@ -222,7 +222,7 @@ fn generate_project_token(
 		"user".into(),
 		"user_scope".into(),
 		user_id.to_string().into(),
-		role.to_string().into(),
+		role.cloned(),
 	);
 
 	match claims.encode_for_access(project_secret.as_bytes()) {
@@ -236,7 +236,7 @@ fn generate_project_token(
 
 fn generate_global_token(
 	user_id: &Cow<'static, str>,
-	role: Role,
+	role: Option<&Cow<'static, str>>,
 ) -> Result<Cow<'static, str>, Status> {
 	// check if user is admin
 
@@ -246,7 +246,7 @@ fn generate_global_token(
 		"user".into(),
 		"user_scope".into(), // admin_scope
 		user_id.to_string().into(),
-		role.into(),
+		role.cloned(),
 	);
 
 	let secret_key = ConfigGetter::get_secret_key();
@@ -265,12 +265,12 @@ pub async fn get_auth_from_id(db: &DbAuth, id: &Cow<'static, str>) -> Result<Aut
 			r#"
             LET $q_user = (SELECT * FROM ONLY users WHERE id = <record> $b_id LIMIT 1);
             LET $q_project = (SELECT * FROM ONLY $q_user.project LIMIT 1);
-            LET $q_center = (SELECT VALUE name FROM ONLY $q_project.center LIMIT 1);
+            LET $q_center = (SELECT * FROM ONLY $q_project.center LIMIT 1);
             
             RETURN $q_user;
             RETURN $q_project;
-            RETURN $q_center;
-            RETURN (SELECT VALUE ->roled.role AS role FROM ONLY $q_user.id)[0];
+            RETURN $q_center.name;
+            RETURN (SELECT VALUE ->roled[where out is $q_center.id].role AS role FROM ONLY $q_user.id)[0];
             "#,
 		)
 		.bind(("b_id", id))
@@ -285,7 +285,6 @@ pub async fn get_auth_from_id(db: &DbAuth, id: &Cow<'static, str>) -> Result<Aut
 			dbg!("Error getting center");
 			Status::InternalServerError
 		})?;
-    let role = role.unwrap();
 
 	let center: Option<Cow<'static, str>> =
 		query.take(query.num_statements() - 1).map_err(|_| {
@@ -342,12 +341,12 @@ pub async fn get_user_from_username(
 			r#"
             LET $q_user = (SELECT * FROM ONLY users WHERE username = $b_username AND crypto::argon2::compare(password, $b_password) LIMIT 1);
             LET $q_project = (SELECT * FROM ONLY $q_user.project LIMIT 1);
-            LET $q_center = (SELECT VALUE name FROM ONLY $q_project.center LIMIT 1);
+            LET $q_center = (SELECT * FROM ONLY $q_project.center LIMIT 1);
 
             RETURN $q_user;
             RETURN $q_project;
-            RETURN $q_center;
-            RETURN (SELECT VALUE ->roled.role AS role FROM ONLY $q_user.id)[0];
+            RETURN $q_center.name;
+            RETURN (SELECT VALUE ->roled[WHERE out IS $q_center.id].role AS role FROM ONLY $q_user.id)[0];
             "#,
 		)
 		.bind(("b_username", username))
@@ -363,7 +362,6 @@ pub async fn get_user_from_username(
 			dbg!("Error getting center");
 			Status::InternalServerError
 		})?;
-    let role = role.unwrap();
 
 	let center: Option<Cow<'static, str>> =
 		query.take(query.num_statements() - 1).map_err(|_| {
